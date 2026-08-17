@@ -1,0 +1,4 @@
+flask>=3.0.0
+firebird-driver>=2.0.0
+firebird-base>=2.0.0
+werkzeug>=3.0.0

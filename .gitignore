@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Build & Installer Output
+build/
+dist/
+installer_output/
+*.egg-info/
+
+# Local Output & Generated Databases
+output/*
+!output/.gitkeep
+fb_migrations/*
+!fb_migrations/.gitkeep
+*.FDB
+*.fdb
+*.GDB
+*.gdb
+*.FBK
+*.fbk
+
+# User uploads & workspace state
+uploads/*
+!uploads/.gitkeep
+
+# Environments & IDEs
+.env
+.venv
+env/
+venv/
+.idea/
+.vscode/
+*.swp
+
+# Engines docs and examples (not needed in repo)
+engines/**/doc/
+engines/**/examples/
+engines/**/include/
+engines/**/misc/
+

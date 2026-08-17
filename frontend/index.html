@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paradox2Firebird Studio | Conversor &amp; Migrador de Banco de Dados</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=8">
+</head>
+<body>
+<div class="app-shell">
+
+    <!-- PANEL 1: PROJECTS (esquerda estreita) -->
+    <aside class="panel-projects">
+        <div class="brand-compact">
+            <div class="brand-icon"><i class="fa-solid fa-arrows-rotate"></i></div>
+            <div class="brand-text">
+                <span class="brand-name">Paradox<strong>2</strong>Firebird</span>
+                <span class="brand-sub">Studio v2.0</span>
+            </div>
+        </div>
+
+        <div class="source-selector">
+            <button class="source-btn active" id="tabSamplesBtn" onclick="switchTableSource('samples')">
+                <i class="fa-solid fa-vial"></i>
+                <span>Bancos de Teste</span>
+                <span class="pill" id="samplesCount">5</span>
+            </button>
+            <button class="source-btn" id="tabUploadsBtn" onclick="switchTableSource('uploads')">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Meus Arquivos</span>
+                <span class="pill" id="uploadsCount">0</span>
+            </button>
+        </div>
+
+        <div class="panel-divider">
+            <span>PROJETOS</span>
+            <button class="btn-new-project" id="btnNewProject" onclick="openNewProjectModal()" title="Novo projeto">
+                <i class="fa-solid fa-plus"></i> Novo
+            </button>
+        </div>
+
+        <div class="projects-list" id="projectsList">
+            <div class="projects-empty" id="projectsEmpty">
+                <i class="fa-solid fa-folder-plus"></i>
+                <span>Nenhum projeto.<br>Clique em <strong>+ Novo</strong>.</span>
+            </div>
+        </div>
+
+        <div class="projects-footer">
+            <button class="btn-upload-global btn-fb-migrate" onclick="openFbMigrateModal()" title="Migrar banco Firebird 2.5 ou 3.0 para Firebird 5.0">
+                <i class="fa-solid fa-fire-flame-curved" style="color: #F59E0B;"></i> Migrar FB 2.5/3.0 ➔ 5.0
+            </button>
+            <label for="fileInput" class="btn-upload-global" title="Enviar arquivos .DB avulsos">
+                <i class="fa-solid fa-file-arrow-up"></i> Enviar Arquivos .DB
+            </label>
+            <button class="btn-upload-global btn-csv" onclick="openImportCsvModal()">
+                <i class="fa-solid fa-file-csv"></i> Importar CSV
+            </button>
+            <a href="/manual" target="_blank" class="btn-upload-global btn-manual" style="text-decoration:none;" title="Abrir Manual do Usuário">
+                <i class="fa-solid fa-book-open" style="color:#06B6D4;"></i> Manual do Usuário
+            </a>
+            <input type="file" id="fileInput" multiple accept=".db,.DB,.mb,.MB,.px,.PX,.csv,.CSV" style="display:none;">
+            <input type="file" id="projectFilesInput" multiple accept=".db,.DB,.mb,.MB,.px,.PX" style="display:none;">
+            <input type="file" id="projectFolderInput" webkitdirectory directory multiple style="display:none;">
+        </div>
+    </aside>
+
+    <!-- PANEL 2: TABLES (centro) -->
+    <aside class="panel-tables">
+        <div class="tables-panel-header">
+            <div class="tables-panel-title">
+                <i class="fa-solid fa-table"></i>
+                <span id="tablesPanelLabel">Tabelas</span>
+            </div>
+            <div class="tables-panel-actions">
+                <label class="chk-select-all" title="Selecionar/Desmarcar todas">
+                    <input type="checkbox" id="masterSelectCheckbox" checked onchange="toggleSelectAll(this.checked)">
+                </label>
+                <button class="btn-icon-sm" title="Recarregar" onclick="loadTablesList()">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="tables-search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="sidebarSearchInput" placeholder="Buscar tabela..." oninput="filterSidebarTables(this.value)">
+        </div>
+
+        <div class="tables-selection-status">
+            <span id="selectedCountBadge">0/0 selecionadas</span>
+        </div>
+
+        <div class="tables-list" id="tablesList"></div>
+
+        <div class="tables-panel-footer">
+            <button class="btn-convert-sql" onclick="convertSelectedConsolidated()">
+                <i class="fa-solid fa-code"></i> Converter para .SQL
+            </button>
+            <button class="btn-convert-fdb" onclick="openFdbModal()">
+                <i class="fa-solid fa-fire-flame-curved"></i> Gerar Banco .FDB
+            </button>
+            <button class="btn-resample" onclick="regenerateSamples()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Recriar Dados de Teste
+            </button>
+        </div>
+    </aside>
+
+    <!-- PANEL 3: MAIN CONTENT (direita) -->
+    <main class="panel-main">
+
+        <header class="main-header">
+            <div class="main-header-left">
+                <div class="active-table-info">
+                    <div class="active-table-badge" id="activeTableBadge">
+                        <i class="fa-solid fa-table"></i>
+                        <span id="currentTableTitle">Nenhuma tabela selecionada</span>
+                    </div>
+                    <div class="table-meta-strip" id="tableQuickMeta">
+                        <span id="metaRecords"><i class="fa-solid fa-list-ol"></i> 0 registros</span>
+                        <span id="metaFields"><i class="fa-solid fa-columns"></i> 0 colunas</span>
+                        <span id="metaRecSize"><i class="fa-solid fa-memory"></i> 0 bytes/reg</span>
+                        <span id="metaPxStatus"><i class="fa-solid fa-key"></i> Indice .PX</span>
+                    </div>
+                </div>
+            </div>
+            <div class="main-header-right">
+                <div class="fb-version-select-wrap">
+                    <i class="fa-solid fa-fire" style="color:#F97316;"></i>
+                    <select id="fbVersionSelect" class="fb-version-select">
+                        <option value="3.0" selected>Firebird 3.0 / 4.0 / 5.0</option>
+                        <option value="2.5">Firebird 2.5 (Legado)</option>
+                    </select>
+                </div>
+                <button class="btn-header-action btn-wizard-pill" onclick="openMigrationWizard()" title="Assistente passo a passo para migração completa">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Assistente Wizard
+                </button>
+                <button class="btn-header-action" onclick="openDiagnosticsModal()" title="Diagnóstico de corrupção, integridade de cabeçalho e higienização">
+                    <i class="fa-solid fa-stethoscope" style="color:#38BDF8;"></i> Diagnóstico
+                </button>
+                <button class="btn-header-action" onclick="openRelationsModal()" title="Detector inteligente de Chaves Estrangeiras (Foreign Keys)">
+                    <i class="fa-solid fa-diagram-project" style="color:#A855F7;"></i> Relacionamentos
+                </button>
+                <button class="btn-header-action" onclick="openAuditModal()" title="Painel de conciliação e auditoria de migração">
+                    <i class="fa-solid fa-chart-pie" style="color:#10B981;"></i> Auditoria
+                </button>
+                <button class="btn-header-action btn-fdb" onclick="openFdbModal()">
+                    <i class="fa-solid fa-fire"></i> Gerar .FDB
+                </button>
+            </div>
+        </header>
+
+        <nav class="content-tabs">
+            <button class="content-tab active" onclick="switchMainTab('dataView')" id="tabDataView">
+                <i class="fa-solid fa-table-cells"></i> Dados
+            </button>
+            <button class="content-tab" onclick="switchMainTab('schemaView')" id="tabSchemaView">
+                <i class="fa-solid fa-network-wired"></i> Mapeamento DDL
+            </button>
+            <button class="content-tab" onclick="switchMainTab('sqlRunnerView')" id="tabSqlRunnerView">
+                <i class="fa-solid fa-terminal"></i> Console SQL &amp; Testes
+            </button>
+            <button class="content-tab" onclick="switchMainTab('sqlView')" id="tabSqlView">
+                <i class="fa-solid fa-code"></i> Script SQL
+            </button>
+            <button class="content-tab" onclick="switchMainTab('directView')" id="tabDirectView">
+                <i class="fa-solid fa-server"></i> Conexão Remota
+            </button>
+        </nav>
+
+        <section class="tab-panel active" id="panelDataView">
+            <div class="panel-toolbar">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="gridSearchInput" placeholder="Filtrar dados na tabela..." oninput="filterGridData()">
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <button class="btn-secondary-sm" onclick="exportCurrentTableCsv()">
+                        <i class="fa-solid fa-file-excel" style="color:#10B981;"></i> Exportar CSV
+                    </button>
+                    <button class="btn-secondary-sm" onclick="exportAllTablesCsvZip()">
+                        <i class="fa-solid fa-file-zipper" style="color:#6366F1;"></i> Exportar Todas (ZIP)
+                    </button>
+                    <div class="toolbar-stats">
+                        <span id="gridRowsCount">Mostrando 0 de 0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="data-table-wrapper">
+                <table class="modern-table" id="dataPreviewTable">
+                    <thead id="dataPreviewHead"></thead>
+                    <tbody id="dataPreviewBody"></tbody>
+                </table>
+                <div class="empty-state" id="emptyState">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <h3>Selecione uma tabela</h3>
+                    <p>Escolha um projeto e clique em uma tabela no painel central para visualizar seus dados.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="tab-panel" id="panelSchemaView">
+            <div class="schema-header-info">
+                <div class="schema-intro">
+                    <h3><i class="fa-solid fa-sliders"></i> Mapeamento de Colunas e Tipos</h3>
+                    <p>Ajuste os tipos de dados Firebird antes de exportar o script DDL.</p>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-generate-fdb" onclick="openFdbModal()"><i class="fa-solid fa-fire"></i> Gerar Banco .FDB</button>
+                    <button class="btn-generate-sql" onclick="generateAndShowSQL()"><i class="fa-solid fa-bolt"></i> Gerar Script SQL</button>
+                </div>
+            </div>
+            <div class="schema-table-wrapper">
+                <table class="modern-table schema-table">
+                    <thead>
+                        <tr>
+                            <th>#</th><th>Coluna Paradox</th><th>Tipo Paradox</th>
+                            <th>Tamanho</th><th>Mapeamento Firebird</th><th>Status / Chave</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schemaTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- NOVO PAINEL: CONSOLE SQL & TESTES INTERATIVOS -->
+        <section class="tab-panel" id="panelSqlRunnerView">
+            <div class="sql-runner-container">
+                <div class="sql-runner-toolbar">
+                    <div class="sql-runner-target">
+                        <label><i class="fa-solid fa-database"></i> Banco Ativo:</label>
+                        <input type="text" id="sqlRunnerDbPath" placeholder="ex: BANCO_MIGRADO.FDB ou deixe vazio para banco local" style="flex:1;">
+                        <button class="btn-secondary-sm" onclick="populateSqlSampleQuery('SELECT_ALL')"><i class="fa-solid fa-list"></i> Select 50</button>
+                        <button class="btn-secondary-sm" onclick="populateSqlSampleQuery('COUNT_ALL')"><i class="fa-solid fa-calculator"></i> Contar Registros</button>
+                    </div>
+                    <div class="sql-runner-actions">
+                        <button class="btn-secondary-sm" onclick="clearSqlQueryInput()"><i class="fa-solid fa-eraser"></i> Limpar</button>
+                        <button class="btn-action-primary-sm" onclick="executeInteractiveSqlQuery()"><i class="fa-solid fa-play"></i> Executar Query (F9)</button>
+                    </div>
+                </div>
+
+                <div class="sql-editor-box">
+                    <textarea id="sqlQueryInput" rows="5" placeholder="Digite sua consulta SQL Firebird aqui... (ex: SELECT * FROM CLIENTES ROWS 50;)">SELECT * FROM CLIENTES ROWS 50;</textarea>
+                </div>
+
+                <div class="sql-runner-results">
+                    <div class="sql-results-header">
+                        <div class="sql-results-meta" id="sqlQueryMeta">
+                            <i class="fa-solid fa-table-list"></i> <span>Aguardando execução de consulta...</span>
+                        </div>
+                        <button class="btn-secondary-sm" id="btnExportQueryResult" onclick="exportQueryResultCsv()" style="display:none;">
+                            <i class="fa-solid fa-file-csv"></i> Exportar CSV
+                        </button>
+                    </div>
+                    <div class="sql-results-grid-wrap" id="sqlResultsGridWrap">
+                        <div class="sql-results-empty">
+                            <i class="fa-solid fa-terminal" style="font-size:2rem; opacity:0.3; margin-bottom:8px;"></i>
+                            <div>Nenhuma consulta executada ainda. Digite um comando SQL e clique em Executar.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="tab-panel" id="panelSqlView">
+            <div class="sql-toolbar">
+                <div class="sql-info">
+                    <h3><i class="fa-solid fa-terminal"></i> Script SQL para Firebird</h3>
+                    <p>Script completo com <code>CREATE TABLE</code>, <code>PRIMARY KEY</code>, <code>GENERATOR/TRIGGER</code> e <code>INSERT INTO</code>.</p>
+                </div>
+                <div class="sql-actions">
+                    <button class="btn-highlight-fdb" onclick="openFdbModal()"><i class="fa-solid fa-fire-flame-curved"></i> Gerar .FDB</button>
+                    <button class="btn-secondary" onclick="copySqlToClipboard()"><i class="fa-solid fa-copy"></i> Copiar SQL</button>
+                    <button class="btn-primary" onclick="downloadGeneratedSQL()"><i class="fa-solid fa-file-arrow-down"></i> Baixar .SQL</button>
+                </div>
+            </div>
+            <div class="code-editor-container">
+                <div class="editor-header">
+                    <span class="editor-title"><i class="fa-solid fa-code"></i> firebird_migration.sql</span>
+                    <span class="editor-badge" id="sqlLinesCount">0 linhas</span>
+                </div>
+                <pre><code id="sqlScriptOutput" class="language-sql">-- Selecione uma tabela e clique em 'Converter' para visualizar o script SQL Firebird.</code></pre>
+            </div>
+        </section>
+
+        <section class="tab-panel" id="panelDirectView">
+            <div class="direct-connection-container">
+                <div class="conn-card">
+                    <div class="conn-header">
+                        <i class="fa-solid fa-database"></i>
+                        <div>
+                            <h3>Conectar e Migrar Diretamente para o Firebird</h3>
+                            <p>Execute os comandos SQL diretamente no servidor Firebird ativo.</p>
+                        </div>
+                    </div>
+                    <div class="conn-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Host / Servidor</label>
+                                <input type="text" id="fbHost" value="localhost">
+                            </div>
+                            <div class="form-group">
+                                <label>Porta</label>
+                                <input type="number" id="fbPort" value="3050">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Caminho do Banco de Dados (.FDB)</label>
+                            <input type="text" id="fbDatabase" value="C:\Bancos\MEUBANCO.FDB">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Usuario</label><input type="text" id="fbUser" value="SYSDBA"></div>
+                            <div class="form-group"><label>Senha</label><input type="password" id="fbPassword" value="masterkey"></div>
+                            <div class="form-group">
+                                <label>Charset</label>
+                                <select id="fbCharset" class="styled-select">
+                                    <option value="UTF8" selected>UTF8</option>
+                                    <option value="WIN1252">WIN1252</option>
+                                    <option value="ISO8859_1">ISO8859_1</option>
+                                    <option value="NONE">NONE</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn-execute-direct" onclick="executeDirectMigration()">
+                            <i class="fa-solid fa-play"></i> Iniciar Migracao Direta para Firebird
+                        </button>
+                    </div>
+                    <div class="direct-result-box" id="directResultBox" style="display:none;">
+                        <h4><i class="fa-solid fa-square-poll-vertical"></i> Resultado da Execucao:</h4>
+                        <div id="directResultContent"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- MODALS -->
+
+<!-- Modal: Gerar .FDB -->
+<div class="modal-overlay" id="fdbModalOverlay" onclick="closeFdbModal(event)">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title-group">
+                <div class="modal-icon"><i class="fa-solid fa-fire-flame-curved"></i></div>
+                <div>
+                    <h3>Gerar Banco de Dados Firebird (.FDB)</h3>
+                    <p>Cria um unico arquivo binario .FDB contendo as tabelas selecionadas.</p>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeFdbModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Nome do Arquivo .FDB Destino</label>
+                <input type="text" id="modalFdbName" value="BANCO_CONVERTIDO.FDB">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Charset do Banco</label>
+                    <select id="modalFdbCharset" class="styled-select">
+                        <option value="UTF8" selected>UTF8 (Recomendado)</option>
+                        <option value="WIN1252">WIN1252 (ANSI Windows)</option>
+                        <option value="ISO8859_1">ISO8859_1</option>
+                        <option value="NONE">NONE</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Page Size</label>
+                    <select id="modalFdbPageSize" class="styled-select">
+                        <option value="8192" selected>8192 (Padrao Otimizado)</option>
+                        <option value="16384">16384 (Grandes Volumes)</option>
+                        <option value="4096">4096 (Bancos Pequenos)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="modal-table-picker-header">
+                    <label><i class="fa-solid fa-list-check"></i> Tabelas para Incluir no .FDB</label>
+                    <div class="modal-picker-actions">
+                        <button type="button" class="btn-picker-link" onclick="modalSelectAllTables(true)">Todas</button>
+                        <span>&bull;</span>
+                        <button type="button" class="btn-picker-link" onclick="modalSelectAllTables(false)">Nenhuma</button>
+                    </div>
+                </div>
+                <div class="modal-tables-checklist" id="modalTablesChecklist"></div>
+            </div>
+            <div class="fdb-status-container" id="fdbStatusContainer" style="display:none;">
+                <div class="fdb-status-inner" id="fdbStatusInner"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeFdbModal()">Cancelar</button>
+            <button class="btn-action-fdb-modal" id="btnConfirmGenerateFdb" onclick="generateAndDownloadFdbAction()">
+                <i class="fa-solid fa-bolt"></i> Gerar e Baixar .FDB Unico
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Importar CSV -->
+<div class="modal-overlay" id="importCsvModalOverlay" onclick="closeImportCsvModal(event)">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title-group">
+                <div class="modal-icon" style="background: linear-gradient(135deg, #10B981, #059669); color: white;">
+                    <i class="fa-solid fa-file-csv"></i>
+                </div>
+                <div>
+                    <h3>Importar Dados de Arquivo CSV</h3>
+                    <p>Converta qualquer planilha CSV em tabela Paradox e Firebird.</p>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeImportCsvModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nome da Tabela de Destino</label>
+                    <input type="text" id="importCsvTableName" placeholder="ex: CLIENTES_NOVOS">
+                </div>
+                <div class="form-group">
+                    <label>Separador / Delimitador</label>
+                    <select id="importCsvDelimiter" class="styled-select">
+                        <option value="" selected>Auto-detectar (; ou , ou Tab)</option>
+                        <option value=";">Ponto e Virgula (;)</option>
+                        <option value=",">Virgula (,)</option>
+                        <option value="\t">Tabulacao (\t)</option>
+                        <option value="|">Pipe (|)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Selecionar Arquivo .CSV</label>
+                <input type="file" id="importCsvFileInput" accept=".csv,.CSV,.txt" class="styled-file-input" onchange="onCsvFileSelected(this)">
+            </div>
+            <div class="form-group">
+                <label>Ou Cole o Conteudo CSV Diretamente</label>
+                <textarea id="importCsvTextarea" rows="6" placeholder="ID;NOME;VALOR;DATA&#10;1;Exemplo;150,00;2024-01-15" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-main); font-family:var(--font-mono); font-size:0.8rem; padding:10px;"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeImportCsvModal()">Cancelar</button>
+            <button class="btn-action-primary" id="btnConfirmImportCsv" onclick="submitImportCsv()">
+                <i class="fa-solid fa-file-import"></i> Importar e Abrir Tabela
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Importar Pasta (avulso) -->
+<div class="modal-overlay" id="importFolderModalOverlay" onclick="closeFolderImportModal(event)">
+    <div class="modal-card" style="max-width:480px;">
+        <div class="modal-header">
+            <div class="modal-title-group">
+                <div class="modal-icon" style="background: linear-gradient(135deg, #6366F1, #4F46E5); color: white;">
+                    <i class="fa-solid fa-folder-tree"></i>
+                </div>
+                <div>
+                    <h3>Importar Pasta de Tabelas</h3>
+                    <p>Selecione a pasta com os arquivos .DB do Paradox.</p>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeFolderImportModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <input type="file" id="folderPickerGlobal" webkitdirectory directory multiple style="display:none;">
+            <div class="folder-picker-zone" onclick="document.getElementById('folderPickerGlobal').click()">
+                <i class="fa-solid fa-folder-open"></i>
+                <h4>Clique para escolher a pasta</h4>
+                <p>Abre o Explorador de Arquivos do Windows.<br>Selecione a pasta que contém os .DB do Paradox.</p>
+                <div class="folder-picker-preview" id="folderPickerGlobalPreview">Nenhuma pasta selecionada</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeFolderImportModal()">Cancelar</button>
+            <button class="btn-action-primary" id="btnConfirmFolderImport" onclick="confirmFolderImport()" disabled>
+                <i class="fa-solid fa-bolt"></i> Importar Tabelas
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Novo Projeto -->
+<div class="modal-overlay" id="newProjectModalOverlay" onclick="closeNewProjectModal(event)">
+    <div class="modal-card" style="max-width:480px;">
+        <div class="modal-header">
+            <div class="modal-title-group">
+                <div class="modal-icon" style="background: linear-gradient(135deg, #6366F1, #4F46E5); color:white;">
+                    <i class="fa-solid fa-folder-plus"></i>
+                </div>
+                <div>
+                    <h3>Novo Projeto</h3>
+                    <p>Selecione a pasta com os bancos Paradox (.DB) para criar o projeto.</p>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeNewProjectModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <!-- Hidden inputs -->
+            <input type="file" id="projectFolderInput" webkitdirectory directory multiple style="display:none;">
+            <input type="file" id="projectFilesInput" multiple accept=".db,.DB,.mb,.MB,.px,.PX" style="display:none;">
+
+            <!-- Project name -->
+            <div class="form-group" style="margin-bottom:14px;">
+                <label>Nome do Projeto <span style="color:var(--text-dim); font-weight:400;">(opcional — preenchido automaticamente)</span></label>
+                <input type="text" id="newProjectName" placeholder="ex: SistemaVendas, ERP_2024...">
+            </div>
+
+            <!-- Single big folder picker button -->
+            <div class="folder-picker-zone" id="newProjectPickerZone" onclick="document.getElementById('projectFolderInput').click()">
+                <i class="fa-solid fa-folder-open"></i>
+                <h4>Clique para escolher a pasta</h4>
+                <p>Abre o Explorador de Arquivos do Windows.<br>Selecione a pasta que contém os .DB do Paradox.</p>
+                <div class="folder-picker-preview" id="selectedFolderPreview">Nenhuma pasta selecionada</div>
+            </div>
+
+            <div class="project-create-status" id="projectCreateStatus" style="display:none;"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeNewProjectModal()">Cancelar</button>
+            <button class="btn-action-primary" id="btnConfirmNewProject" onclick="confirmCreateProject()">
+                <i class="fa-solid fa-bolt"></i> Criar Projeto e Importar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirmar Delete Projeto -->
+<div class="modal-overlay" id="deleteProjectModalOverlay" onclick="closeDeleteProjectModal(event)">
+    <div class="modal-card" style="max-width:420px;">
+        <div class="modal-header">
+            <div class="modal-title-group">
+                <div class="modal-icon" style="background: linear-gradient(135deg, #EF4444, #DC2626); color:white;">
+                    <i class="fa-solid fa-trash"></i>
+                </div>
+                <div>
+                    <h3>Remover Projeto</h3>
+                    <p id="deleteProjectModalDesc">Tem certeza que deseja remover este projeto?</p>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeDeleteProjectModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <label class="delete-files-option">
+                <input type="checkbox" id="deleteProjectFilesCheckbox">
+                <span>Tambem apagar os arquivos copiados do projeto</span>
+            </label>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeDeleteProjectModal()">Cancelar</button>
+            <button class="btn-danger" id="btnConfirmDeleteProject" onclick="confirmDeleteProject()">
+                <i class="fa-solid fa-trash"></i> Remover Projeto
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Migrador Firebird 2.5 / 3.0 -> 5.0 -->
+<div class="modal-overlay" id="fbMigrateModalOverlay" onclick="closeFbMigrateModal(event)">
+    <div class="modal-card" style="max-width: 580px;">
+        <div class="modal-header">
+            <div class="modal-title-group">
+                <div class="modal-icon" style="background: linear-gradient(135deg, #F59E0B, #D97706); color:white;">
+                    <i class="fa-solid fa-fire-flame-curved"></i>
+                </div>
+                <div>
+                    <h3>Migrador Firebird ➔ 5.0</h3>
+                    <p>Converta bancos Firebird 2.5 ou 3.0 para a versão mais recente 5.0 (ODS 13.1).</p>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeFbMigrateModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <input type="file" id="fbMigrateFileInput" accept=".fdb,.FDB,.gdb,.GDB,.fbk,.FBK" style="display:none;" onchange="onFbFileSelected(this)">
+            
+            <!-- File Selector Area -->
+            <div class="folder-picker-zone" id="fbMigratePickerZone" onclick="document.getElementById('fbMigrateFileInput').click()">
+                <i class="fa-solid fa-database" style="color:#F59E0B;"></i>
+                <h4>Clique para escolher o banco Firebird</h4>
+                <p>Selecione um arquivo <strong>.FDB</strong>, <strong>.GDB</strong> ou backup <strong>.FBK</strong> (FB 2.5 ou 3.0).</p>
+                <div class="folder-picker-preview" id="fbMigrateFilePreview">Nenhum banco selecionado</div>
+            </div>
+
+            <!-- Analysis Result Card -->
+            <div id="fbAnalysisCard" style="display:none; margin-top:16px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.25); border-radius:var(--radius-md); padding:14px 18px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-weight:700; font-size:0.9rem; color:var(--text-main);" id="fbDetectedVersion">Firebird 2.5</span>
+                    <span class="badge-px-pill" style="background:rgba(245,158,11,0.2); color:#FBBF24;" id="fbDetectedOds">ODS 11.2</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.8rem; color:var(--text-muted);">
+                    <div><i class="fa-solid fa-file"></i> Arquivo: <strong id="fbOriginalFileName" style="color:var(--text-main);">-</strong></div>
+                    <div><i class="fa-solid fa-hard-drive"></i> Tamanho: <strong id="fbOriginalFileSize" style="color:var(--text-main);">-</strong></div>
+                </div>
+            </div>
+
+            <!-- Target Options -->
+            <div id="fbTargetOptions" style="display:none; margin-top:16px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Tamanho de Página (Page Size)</label>
+                        <select id="fbTargetPageSize" style="width:100%;">
+                            <option value="8192" selected>8192 Bytes (Recomendado)</option>
+                            <option value="16384">16384 Bytes (Alta Performance)</option>
+                            <option value="4096">4096 Bytes</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Charset Padrão</label>
+                        <select id="fbTargetCharset" style="width:100%;">
+                            <option value="UTF8" selected>UTF8 (Moderno / Internacional)</option>
+                            <option value="WIN1252">WIN1252 (ANSI Brasil / Windows)</option>
+                            <option value="ISO8859_1">ISO8859_1 (Latin-1)</option>
+                            <option value="NONE">NONE</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Nome do Novo Banco Gerado (.FDB)</label>
+                    <input type="text" id="fbTargetCustomName" placeholder="ex: BANCO_FIREBIRD_50.FDB">
+                </div>
+            </div>
+
+            <!-- Migration Status / Logs -->
+            <div class="project-create-status" id="fbMigrateStatus" style="display:none; margin-top:14px;"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeFbMigrateModal()">Fechar</button>
+            <button class="btn-action-primary" id="btnExecuteFbMigrate" onclick="executeFbMigration()" disabled style="background:linear-gradient(135deg, #F59E0B, #D97706);">
+                <i class="fa-solid fa-bolt"></i> Portar para Firebird 5.0
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Diagnóstico e Higienização de Dados -->
+<div class="modal-overlay" id="diagnosticsModalOverlay" onclick="closeDiagnosticsModal(event)">
+    <div class="modal-card modal-lg">
+        <div class="modal-header">
+            <div class="modal-title-group">
+                <div class="modal-icon" style="background: linear-gradient(135deg, #38BDF8, #0284C7); color:white;">
+                    <i class="fa-solid fa-stethoscope"></i>
+                </div>
+                <div>
+                    <h3>Diagnóstico de Integridade &amp; Higienização Paradox</h3>
+                    <p>Inspeção profunda de cabeçalhos, índices .PX, memos .MB, datas e chaves.</p>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeDiagnosticsModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <!-- Health Score Header -->
+            <div class="diagnostics-summary-card" id="diagSummaryCard">
+                <div class="diag-score-badge" id="diagScoreBadge">
+                    <span class="diag-score-num" id="diagScoreNum">100%</span>
+                    <span class="diag-score-lbl">Saúde da Base</span>
+                </div>
+                <div class="diag-meta-info">
+                    <h4 id="diagStatusTitle"><i class="fa-solid fa-circle-check" style="color:#10B981;"></i> Base de Dados Saudável</h4>
+                    <p id="diagStatusDesc">Nenhuma corrupção crítica detectada na estrutura de tabelas.</p>
+                    <div class="diag-badges-strip">
+                        <span class="pill" id="diagTotalTablesPill">0 Tabelas</span>
+                        <span class="pill" id="diagTotalRecordsPill">0 Registros</span>
+                        <span class="pill pill-warning" id="diagIssuesPill">0 Problemas</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Issues Table / List -->
+            <div class="diag-section-title">
+                <i class="fa-solid fa-triangle-exclamation" style="color:#F59E0B;"></i> Relatório Detalhado por Tabela
+            </div>
+            <div class="diag-issues-list" id="diagIssuesList">
+                <div style="padding:16px; text-align:center; color:var(--text-dim);">Carregando diagnóstico...</div>
+            </div>
+
+            <!-- Sanitization Controls -->
+            <div class="diag-cleanse-box">
+                <h4><i class="fa-solid fa-wand-magic-sparkles" style="color:#A855F7;"></i> Opções de Higienização Automática</h4>
+                <div class="diag-cleanse-options">
+                    <label class="cleanse-chk"><input type="checkbox" id="cleanseFixDates" checked> <span>Corrigir / anular datas fora de faixa ou nulas (ex: 00/00/0000)</span></label>
+                    <label class="cleanse-chk"><input type="checkbox" id="cleanseFixPks" checked> <span>Gerar IDs sequenciais para chaves primárias nulas</span></label>
+                    <label class="cleanse-chk"><input type="checkbox" id="cleanseFixDups" checked> <span>Incrementar chaves primárias duplicadas</span></label>
+                    <label class="cleanse-chk"><input type="checkbox" id="cleanseTrim" checked> <span>Remover espaços em branco e corrigir charset</span></label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeDiagnosticsModal()">Fechar</button>
+            <button class="btn-action-primary" id="btnRunCleanse" onclick="executeSanitizationAction()">
+                <i class="fa-solid fa-sparkles"></i> Executar Higienização &amp; Correção
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Detector de Chaves Estrangeiras & Relacionamentos -->
+<div class="modal-overlay" id="relationsModalOverlay" onclick="closeRelationsModal(event)">
+    <div class="modal-card modal-lg">
+        <div class="modal-header">
+            <div class="modal-title-group">
+                <div class="modal-icon" style="background: linear-gradient(135deg, #A855F7, #7C3AED); color:white;">
+                    <i class="fa-solid fa-diagram-project"></i>
+                </div>
+                <div>
+                    <h3>Detector de Relacionamentos &amp; Chaves Estrangeiras</h3>
+                    <p>Identificação de vínculos relacionais e auditoria de integridade referencial.</p>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeRelationsModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="relations-intro-strip">
+                <div>
+                    <strong><span id="relationsCountBadge">0</span> Chaves Estrangeiras Sugeridas</strong>
+                    <p style="font-size:0.75rem; color:var(--text-dim); margin-top:2px;">O sistema analisa a nomenclatura de chaves e dados para sugerir constraints no Firebird.</p>
+                </div>
+                <button class="btn-secondary-sm" onclick="validateAllRelationsOrphans()"><i class="fa-solid fa-user-xmark"></i> Verificar Órfãos</button>
+            </div>
+
+            <div class="relations-grid-table-wrap">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th style="width:40px; text-align:center;"><input type="checkbox" id="relMasterCb" checked onchange="toggleAllRelations(this.checked)"></th>
+                            <th>Tabela Filha (Child)</th>
+                            <th>Coluna FK</th>
+                            <th>Tabela Pai (Parent)</th>
+                            <th>Coluna PK</th>
+                            <th>Confiança</th>
+                            <th>Status / Órfãos</th>
+                        </tr>
+                    </thead>
+                    <tbody id="relationsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeRelationsModal()">Fechar</button>
+            <button class="btn-action-primary" onclick="copyRelationsDdlAction()">
+                <i class="fa-solid fa-copy"></i> Copiar DDL de Foreign Keys
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Assistente de Migração Passo a Passo (Wizard) -->
+<div class="modal-overlay" id="wizardModalOverlay" onclick="closeMigrationWizard(event)">
+    <div class="modal-card modal-lg wizard-card">
+        <div class="modal-header">
+            <div class="modal-title-group">
+                <div class="modal-icon" style="background: linear-gradient(135deg, #EC4899, #8B5CF6); color:white;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <div>
+                    <h3>Assistente de Migração Express (Wizard)</h3>
+                    <p>Guia passo a passo para converter seu banco Paradox em Firebird sem complicações.</p>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeMigrationWizard()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Wizard Steps Timeline -->
+        <div class="wizard-timeline">
+            <div class="wizard-step active" id="wizStep1"><div class="step-num">1</div><span>Origem</span></div>
+            <div class="wizard-line" id="wizLine1"></div>
+            <div class="wizard-step" id="wizStep2"><div class="step-num">2</div><span>Diagnóstico</span></div>
+            <div class="wizard-line" id="wizLine2"></div>
+            <div class="wizard-step" id="wizStep3"><div class="step-num">3</div><span>Relacionamentos</span></div>
+            <div class="wizard-line" id="wizLine3"></div>
+            <div class="wizard-step" id="wizStep4"><div class="step-num">4</div><span>Destino &amp; Executar</span></div>
+        </div>
+
+        <div class="modal-body wizard-body">
+            <!-- Step 1: Source selection -->
+            <div class="wizard-page active" id="wizPage1">
+                <h4><i class="fa-solid fa-folder-open" style="color:var(--primary);"></i> 1. Selecionar Tabelas de Origem</h4>
+                <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:12px;">Escolha a fonte de dados que deseja migrar:</p>
+                <div class="wizard-source-picker">
+                    <button class="wizard-src-card active" id="wizCardSamples" onclick="selectWizardSource('samples')">
+                        <i class="fa-solid fa-vial"></i>
+                        <h5>Bancos de Teste</h5>
+                        <span>5 tabelas prontas</span>
+                    </button>
+                    <button class="wizard-src-card" id="wizCardUploads" onclick="selectWizardSource('uploads')">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <h5>Meus Arquivos / Projetos</h5>
+                        <span>Tabelas importadas</span>
+                    </button>
+                </div>
+                <div class="wizard-tables-preview" id="wizTablesPreview"></div>
+            </div>
+
+            <!-- Step 2: Diagnostics -->
+            <div class="wizard-page" id="wizPage2">
+                <h4><i class="fa-solid fa-stethoscope" style="color:#38BDF8;"></i> 2. Diagnóstico &amp; Higienização Prévia</h4>
+                <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:12px;">Resultados da verificação de integridade dos arquivos Paradox:</p>
+                <div class="wizard-diag-result" id="wizDiagResult">
+                    <div style="text-align:center; padding:20px; color:var(--text-dim);">Analisando integridade...</div>
+                </div>
+            </div>
+
+            <!-- Step 3: Relations -->
+            <div class="wizard-page" id="wizPage3">
+                <h4><i class="fa-solid fa-diagram-project" style="color:#A855F7;"></i> 3. Chaves Estrangeiras Detectadas</h4>
+                <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:12px;">Selecione as chaves relacionais que deseja gerar no Firebird:</p>
+                <div class="wizard-relations-list" id="wizRelationsList"></div>
+            </div>
+
+            <!-- Step 4: Destination & Run -->
+            <div class="wizard-page" id="wizPage4">
+                <h4><i class="fa-solid fa-fire" style="color:#F97316;"></i> 4. Configurar Destino &amp; Iniciar Migração</h4>
+                <div class="form-row" style="margin-top:12px;">
+                    <div class="form-group">
+                        <label>Versão Firebird Alvo</label>
+                        <select id="wizFbVersion" class="styled-select">
+                            <option value="3.0" selected>Firebird 3.0 / 4.0 / 5.0 (Recomendado)</option>
+                            <option value="2.5">Firebird 2.5 (Legado)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Charset do Banco</label>
+                        <select id="wizFbCharset" class="styled-select">
+                            <option value="UTF8" selected>UTF8 (Internacional)</option>
+                            <option value="WIN1252">WIN1252 (ANSI Brasil)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nome do Arquivo .FDB Gerado</label>
+                    <input type="text" id="wizOutputFdbName" value="BANCO_MIGRADO_WIZARD.FDB">
+                </div>
+
+                <!-- Live Progress Box -->
+                <div class="wizard-progress-box" id="wizProgressBox" style="display:none;">
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar-fill" id="wizProgressFill" style="width:0%;"></div>
+                    </div>
+                    <div class="progress-stats-row">
+                        <span id="wizProgressStatus"><i class="fa-solid fa-spinner fa-spin"></i> Convertendo tabelas...</span>
+                        <span id="wizProgressSpeed">0 reg/s</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer wizard-footer">
+            <button class="btn-secondary" id="btnWizPrev" onclick="wizardNavPrev()" disabled>Voltar</button>
+            <button class="btn-action-primary" id="btnWizNext" onclick="wizardNavNext()">
+                Avançar <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Auditoria e Relatório de Conciliação -->
+<div class="modal-overlay" id="auditModalOverlay" onclick="closeAuditModal(event)">
+    <div class="modal-card modal-lg">
+        <div class="modal-header">
+            <div class="modal-title-group">
+                <div class="modal-icon" style="background: linear-gradient(135deg, #10B981, #059669); color:white;">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div>
+                    <h3>Auditoria &amp; Conciliação de Migração</h3>
+                    <p>Conferência de integridade de dados (Paradox vs Firebird) com controle financeiro.</p>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeAuditModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="audit-summary-strip" id="auditSummaryStrip">
+                <div class="audit-stat-item">
+                    <span class="stat-lbl">Tabelas Auditadas</span>
+                    <span class="stat-val" id="auditTotalTables">0</span>
+                </div>
+                <div class="audit-stat-item">
+                    <span class="stat-lbl">Reg. Origem (Paradox)</span>
+                    <span class="stat-val" id="auditTotalSource">0</span>
+                </div>
+                <div class="audit-stat-item">
+                    <span class="stat-lbl">Reg. Destino (Firebird)</span>
+                    <span class="stat-val" id="auditTotalTarget">0</span>
+                </div>
+                <div class="audit-stat-item">
+                    <span class="stat-lbl">Taxa de Conciliação</span>
+                    <span class="stat-val" style="color:#10B981;" id="auditRate">100%</span>
+                </div>
+            </div>
+
+            <div class="audit-table-wrap">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Tabela / Arquivo</th>
+                            <th style="text-align:center;">Colunas</th>
+                            <th style="text-align:right;">Origem (Paradox)</th>
+                            <th style="text-align:right;">Destino (Firebird)</th>
+                            <th style="text-align:center;">Status</th>
+                            <th>Controle Numérico (Checksums)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeAuditModal()">Fechar</button>
+            <button class="btn-secondary" onclick="openPrintableAuditReport()"><i class="fa-solid fa-print"></i> Visualizar Relatório p/ Impressão</button>
+            <button class="btn-action-primary" onclick="exportAuditJsonAction()"><i class="fa-solid fa-file-export"></i> Exportar Auditoria (JSON)</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="app.js?v=10"></script>
+</body>
+</html>

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual do Usuário | Paradox2Firebird Studio v2.5</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #0B0F19;
+            --bg-card: #111827;
+            --bg-card-alt: #1F2937;
+            --bg-sidebar: #0E1322;
+            --border-color: #1F293D;
+            --border-highlight: #374151;
+            --primary: #6366F1;
+            --primary-hover: #4F46E5;
+            --primary-glow: rgba(99, 102, 241, 0.25);
+            --accent: #06B6D4;
+            --amber: #F59E0B;
+            --emerald: #10B981;
+            --danger: #EF4444;
+            --purple: #A855F7;
+            --pink: #EC4899;
+            --text-main: #F9FAFB;
+            --text-muted: #9CA3AF;
+            --text-dim: #6B7280;
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Sidebar Navigation ── */
+        .sidebar {
+            width: 300px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px 18px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #6366F1, #3B82F6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .brand-title h2 { font-size: 1rem; font-weight: 800; letter-spacing: -0.3px; }
+        .brand-title span { font-size: 0.7rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+        .nav-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-section-title {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            padding: 14px 12px 6px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.84rem;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+
+        .nav-link i { width: 16px; font-size: 0.85rem; text-align: center; }
+        .nav-link:hover { background: rgba(99, 102, 241, 0.08); color: var(--text-main); }
+        .nav-link.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: #A5B4FC;
+            font-weight: 600;
+            border-left: 3px solid var(--primary);
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            text-align: center;
+        }
+
+        /* ── Main Content Area ── */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 60px 80px;
+            scroll-behavior: smooth;
+        }
+
+        .content-container {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        /* ── Typography & Elements ── */
+        h1.doc-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #FFFFFF, #9CA3AF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .doc-subtitle {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .section-block {
+            margin-bottom: 50px;
+            padding-top: 20px;
+        }
+
+        h2.section-heading {
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        h2.section-heading i { color: var(--primary); font-size: 1.2rem; }
+
+        h3.sub-heading {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #E2E8F0;
+            margin: 24px 0 12px;
+        }
+
+        p { margin-bottom: 14px; font-size: 0.92rem; color: #CBD5E1; }
+
+        /* ── Cards & Callouts ── */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .feature-card .card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            margin-bottom: 14px;
+        }
+
+        .feature-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; color: var(--text-main); }
+        .feature-card p { font-size: 0.84rem; color: var(--text-muted); margin: 0; }
+
+        /* ── Alert Boxes ── */
+        .alert {
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            margin: 20px 0;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            font-size: 0.88rem;
+        }
+
+        .alert-info { background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.3); color: #CFFAFE; }
+        .alert-info i { color: var(--accent); font-size: 1.1rem; margin-top: 2px; }
+
+        .alert-success { background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); color: #D1FAE5; }
+        .alert-success i { color: var(--emerald); font-size: 1.1rem; margin-top: 2px; }
+
+        .alert-warning { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); color: #FEF3C7; }
+        .alert-warning i { color: var(--amber); font-size: 1.1rem; margin-top: 2px; }
+
+        .alert-purple { background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.3); color: #F3E8FF; }
+        .alert-purple i { color: var(--purple); font-size: 1.1rem; margin-top: 2px; }
+
+        /* ── Step by Step list ── */
+        .step-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .step-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 18px 22px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.2);
+            color: #A5B4FC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+        .step-content p { font-size: 0.85rem; margin: 0; color: var(--text-muted); }
+
+        /* ── Tables ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            font-size: 0.85rem;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th { background: #161F33; font-weight: 700; color: #E2E8F0; }
+        tr:hover td { background: rgba(99, 102, 241, 0.04); }
+
+        code { font-family: var(--font-mono); color: #F472B6; background: rgba(244, 114, 182, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+        .badge-fb { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-px { background: rgba(99, 102, 241, 0.15); color: #A5B4FC; border: 1px solid rgba(99, 102, 241, 0.3); }
+
+        @media print {
+            body { background: white; color: black; display: block; height: auto; overflow: visible; }
+            .sidebar { display: none; }
+            .content { padding: 0; }
+            .feature-card, .step-item, table { border: 1px solid #ccc; background: none; color: black; }
+            h1.doc-title { -webkit-text-fill-color: black; color: black; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar Menu -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="brand-icon">
+            <i class="fa-solid fa-fire"></i>
+        </div>
+        <div class="brand-title">
+            <h2>Paradox2Firebird</h2>
+            <span>Manual do Usuário v2.5</span>
+        </div>
+    </div>
+
+    <nav class="nav-list">
+        <div class="nav-section-title">Geral</div>
+        <a href="#introducao" class="nav-link active"><i class="fa-solid fa-house"></i> 1. Visão Geral</a>
+        <a href="#arquitetura" class="nav-link"><i class="fa-solid fa-network-wired"></i> 2. Arquitetura do Sistema</a>
+
+        <div class="nav-section-title">Paradox ➔ Firebird</div>
+        <a href="#projetos" class="nav-link"><i class="fa-solid fa-folder-tree"></i> 3. Gestão de Projetos</a>
+        <a href="#importacao-pasta" class="nav-link"><i class="fa-solid fa-folder-open"></i> 4. Importar Pasta Completa</a>
+        <a href="#inspecao-tabelas" class="nav-link"><i class="fa-solid fa-table"></i> 5. Inspeção e Mapeamento</a>
+        <a href="#palavras-reservadas" class="nav-link"><i class="fa-solid fa-shield-halved" style="color:var(--amber);"></i> 6. Palavras Reservadas</a>
+        <a href="#geracao-fdb" class="nav-link"><i class="fa-solid fa-file-shield"></i> 7. Criar Banco .FDB Binário</a>
+
+        <div class="nav-section-title">Recursos Avançados v2.5</div>
+        <a href="#wizard-express" class="nav-link"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--pink);"></i> 8. Assistente Wizard</a>
+        <a href="#diagnosticos" class="nav-link"><i class="fa-solid fa-stethoscope" style="color:var(--accent);"></i> 9. Diagnóstico &amp; Higienização</a>
+        <a href="#relacionamentos-fk" class="nav-link"><i class="fa-solid fa-diagram-project" style="color:var(--purple);"></i> 10. Chaves Estrangeiras (FKs)</a>
+        <a href="#console-sql" class="nav-link"><i class="fa-solid fa-terminal"></i> 11. Console SQL &amp; Testes (F9)</a>
+        <a href="#auditoria-conciliacao" class="nav-link"><i class="fa-solid fa-chart-pie" style="color:var(--emerald);"></i> 12. Auditoria &amp; Conciliação</a>
+
+        <div class="nav-section-title">Firebird ➔ Firebird 5.0</div>
+        <a href="#migrador-fb" class="nav-link"><i class="fa-solid fa-fire-flame-curved" style="color:var(--amber);"></i> 13. Migrar FB 2.5 / 3.0 ➔ 5.0</a>
+        <a href="#multi-portas" class="nav-link"><i class="fa-solid fa-server"></i> 14. Motores e Portas (3051/3052)</a>
+
+        <div class="nav-section-title">Suporte e FAQ</div>
+        <a href="#faq" class="nav-link"><i class="fa-solid fa-circle-question"></i> 15. Dúvidas Frequentes</a>
+    </nav>
+
+    <div class="sidebar-footer">
+        Paradox2Firebird Studio &copy; 2026<br>
+        Documentação Oficial v2.5
+    </div>
+</aside>
+
+<!-- Main Documentation Content -->
+<main class="content">
+    <div class="content-container">
+        
+        <header style="margin-bottom: 40px;">
+            <h1 class="doc-title">Manual de Instruções e Referência Técnica</h1>
+            <div class="doc-subtitle">Guia completo para conversão de bancos Paradox (.DB/.PX/.MB) e modernização de Firebird 2.5/3.0 para Firebird 5.0.</div>
+            
+            <div class="alert alert-info">
+                <i class="fa-solid fa-circle-info"></i>
+                <div>
+                    <strong>Versão da Aplicação:</strong> Studio v2.5 Suite Completa (Web Edition &amp; Standalone).<br>
+                    Suporte nativo a <strong>Firebird 2.5, 3.0, 4.0 e 5.0</strong> (ODS 11.2, 12.0, 13.0 e 13.1).
+                </div>
+            </div>
+        </header>
+
+        <!-- 1. Visão Geral -->
+        <section class="section-block" id="introducao">
+            <h2 class="section-heading"><i class="fa-solid fa-compass"></i> 1. Visão Geral</h2>
+            <p>O <strong>Paradox2Firebird Studio</strong> é uma solução de engenharia de software desenvolvida para automatizar, acelerar e garantir 100% de integridade na migração de sistemas legados baseados em <strong>Borland Paradox (.DB, .PX, .MB)</strong> para bancos relacionais <strong>Firebird</strong> modernos, além de fornecer um motor integrado para portar bancos Firebird antigos (2.5 e 3.0) para a versão mais recente <strong>Firebird 5.0</strong>.</p>
+
+            <div class="card-grid">
+                <div class="feature-card">
+                    <div class="card-icon" style="background: rgba(99,102,241,0.15); color:#818CF8;"><i class="fa-solid fa-bolt"></i></div>
+                    <h4>Leitura Binária Direta</h4>
+                    <p>Lê arquivos Paradox diretamente do disco sem necessidade de BDE, ODBC ou drivers externos legados de 16/32 bits.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="card-icon" style="background: rgba(6,182,212,0.15); color:#22D3EE;"><i class="fa-solid fa-stethoscope"></i></div>
+                    <h4>Diagnóstico &amp; Higienização</h4>
+                    <p>Calcula score de saúde da base e corrige datas inválidas (ex: 00/00/0000) e chaves nulas ou duplicadas.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="card-icon" style="background: rgba(168,85,247,0.15); color:#C084FC;"><i class="fa-solid fa-diagram-project"></i></div>
+                    <h4>Detector de Chaves Estrangeiras</h4>
+                    <p>Identifica automaticamente relacionamentos entre tabelas e valida registros órfãos antes da migração.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="card-icon" style="background: rgba(16,185,129,0.15); color:#34D399;"><i class="fa-solid fa-chart-pie"></i></div>
+                    <h4>Auditoria com Checksums</h4>
+                    <p>Compara contagem de registros e somatórios financeiros entre Paradox e Firebird para emissão de laudo técnico.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Arquitetura -->
+        <section class="section-block" id="arquitetura">
+            <h2 class="section-heading"><i class="fa-solid fa-network-wired"></i> 2. Arquitetura do Sistema</h2>
+            <p>O sistema foi estruturado em um modelo modular e resiliente:</p>
+            <ul>
+                <li><strong>paradox_engine.py</strong>: Leitor e escritor binário Paradox (.DB, .PX, .MB).</li>
+                <li><strong>firebird_engine.py</strong>: Gerador de DDL/DML, criador de .FDB binário, executor de consultas SQL e validador de palavras reservadas.</li>
+                <li><strong>diagnostics_engine.py</strong>: Inspetor de integridade, cálculo de Health Score e sanitização de registros.</li>
+                <li><strong>relations_engine.py</strong>: Detector de grafos relacionais e validador de integridade referencial / órfãos.</li>
+                <li><strong>audit_engine.py</strong>: Conciliação de dados, somas financeiras e gerador de relatórios HTML/JSON.</li>
+                <li><strong>fb_migrator.py</strong>: Inspetor de ODS e migrador multi-versão Firebird 2.5 / 3.0 ➔ 5.0.</li>
+            </ul>
+        </section>
+
+        <!-- 3. Gestão de Projetos -->
+        <section class="section-block" id="projetos">
+            <h2 class="section-heading"><i class="fa-solid fa-folder-tree"></i> 3. Gestão de Projetos</h2>
+            <p>O Studio organiza o seu trabalho em <strong>Projetos Independentes</strong>. Cada projeto possui sua própria pasta isolada, permitindo que você trabalhe com diferentes clientes e pastas de bancos simultaneamente sem misturar tabelas.</p>
+        </section>
+
+        <!-- 4. Importação de Pasta Completa -->
+        <section class="section-block" id="importacao-pasta">
+            <h2 class="section-heading"><i class="fa-solid fa-folder-open"></i> 4. Importar Pasta Completa com Arquivos Paradox</h2>
+            <p>Para importar centenas de tabelas de uma vez diretamente do seu disco rígido:</p>
+            <div class="step-list">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Abrir Seletor de Pasta</h4>
+                        <p>Clique em <strong>+ Novo</strong> no painel de projetos e selecione o botão com o ícone de pasta do Windows.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Selecionar o Diretório</h4>
+                        <p>Escolha a pasta no seu HD contendo os arquivos <code>.DB</code>, <code>.PX</code> e <code>.MB</code>.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Importação e Associação Automática</h4>
+                        <p>O Studio copia as tabelas e associa automaticamente os índices primários <code>.PX</code> e campos memo <code>.MB</code>.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Inspeção e Mapeamento -->
+        <section class="section-block" id="inspecao-tabelas">
+            <h2 class="section-heading"><i class="fa-solid fa-table"></i> 5. Inspeção de Dados e Mapeamento DDL</h2>
+            <p>Ao selecionar qualquer tabela, você tem acesso imediato à grade de dados com paginação, filtro em tempo real e visualizador de metadados.</p>
+        </section>
+
+        <!-- 6. Palavras Reservadas -->
+        <section class="section-block" id="palavras-reservadas">
+            <h2 class="section-heading"><i class="fa-solid fa-shield-halved" style="color:var(--amber);"></i> 6. Validação de Palavras Reservadas do Firebird</h2>
+            <p>Campos do Paradox que coincidem com palavras reservadas do Firebird (como <code>DATE</code>, <code>VALUE</code>, <code>ORDER</code>, <code>CHECK</code>, <code>USER</code>, etc.) são identificados automaticamente com o badge <span class="badge badge-fb"><i class="fa-solid fa-triangle-exclamation"></i> Reservada</span> e recebem o prefixo seguro <code>F_</code> (ex: <code>F_DATE</code>, <code>F_USER</code>) no DDL e nos INSERTs para evitar erros de sintaxe no Firebird.</p>
+        </section>
+
+        <!-- 7. Geração de Banco .FDB -->
+        <section class="section-block" id="geracao-fdb">
+            <h2 class="section-heading"><i class="fa-solid fa-file-shield"></i> 7. Criar Banco .FDB Binário com 1 Clique</h2>
+            <p>Basta selecionar as tabelas desejadas via checkbox e clicar no botão <strong>⚡ Gerar .FDB</strong>. O motor ISQL compila o arquivo diretamente no disco e libera o download imediato.</p>
+        </section>
+
+        <!-- 8. Assistente Wizard -->
+        <section class="section-block" id="wizard-express">
+            <h2 class="section-heading"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--pink);"></i> 8. Assistente de Migração Express (Wizard)</h2>
+            <p>O <strong>Assistente Wizard</strong> guia você em 4 passos simples:</p>
+            <ol style="margin-left: 20px; font-size: 0.9rem; color: #CBD5E1;">
+                <li><strong>Seleção de Origem</strong>: Escolha entre Bancos de Teste ou seus arquivos importados.</li>
+                <li><strong>Diagnóstico Automático</strong>: Verificação de integridade e ativação de filtros de higienização.</li>
+                <li><strong>Relacionamentos</strong>: Escolha das chaves estrangeiras sugeridas.</li>
+                <li><strong>Compilação e Execução</strong>: Geração do arquivo <code>.FDB</code> com barra de progresso em tempo real e abertura automática da auditoria.</li>
+            </ol>
+        </section>
+
+        <!-- 9. Diagnósticos & Higienização -->
+        <section class="section-block" id="diagnosticos">
+            <h2 class="section-heading"><i class="fa-solid fa-stethoscope" style="color:var(--accent);"></i> 9. Diagnóstico &amp; Higienização de Dados</h2>
+            <p>Clique no botão <strong>🩺 Diagnóstico</strong> no cabeçalho para ver o <em>Health Score</em> da sua base e aplicar correções:</p>
+            <ul>
+                <li>Anulação / ajuste de datas com ano zero ou fora do intervalo do Firebird.</li>
+                <li>Geração de identificadores sequenciais para chaves primárias nulas.</li>
+                <li>Remoção de espaços em branco e ajuste de codificação de caracteres.</li>
+            </ul>
+        </section>
+
+        <!-- 10. Chaves Estrangeiras -->
+        <section class="section-block" id="relacionamentos-fk">
+            <h2 class="section-heading"><i class="fa-solid fa-diagram-project" style="color:var(--purple);"></i> 10. Chaves Estrangeiras (Foreign Keys)</h2>
+            <p>O módulo de <strong>Relacionamentos</strong> cruza nomes de campos (ex: <code>ID_CLIENTE</code> em PEDIDOS e em CLIENTES), detecta referências e permite auditar registros órfãos com 1 clique antes de aplicar as constraints.</p>
+        </section>
+
+        <!-- 11. Console SQL -->
+        <section class="section-block" id="console-sql">
+            <h2 class="section-heading"><i class="fa-solid fa-terminal"></i> 11. Console SQL &amp; Testes Interativos (F9)</h2>
+            <p>Na aba <strong>Console SQL &amp; Testes</strong>, você pode digitar qualquer comando SQL Firebird e pressionar <strong>F9</strong> ou <strong>Ctrl+Enter</strong> para visualizar o resultado imediatamente em uma grade interativa ou exportar para CSV.</p>
+        </section>
+
+        <!-- 12. Auditoria & Conciliação -->
+        <section class="section-block" id="auditoria-conciliacao">
+            <h2 class="section-heading"><i class="fa-solid fa-chart-pie" style="color:var(--emerald);"></i> 12. Auditoria &amp; Conciliação de Dados</h2>
+            <p>O painel de <strong>Auditoria</strong> compara o total de registros migrados e calcula somatórios de colunas financeiras (ex: valores de pedidos, limites de crédito, saldos de estoque) em ambas as bases para emissão de laudo técnico para impressão ou exportação em JSON.</p>
+        </section>
+
+        <!-- 13. Migrador Firebird 2.5/3.0 -> 5.0 -->
+        <section class="section-block" id="migrador-fb">
+            <h2 class="section-heading"><i class="fa-solid fa-fire-flame-curved" style="color:var(--amber);"></i> 13. Migrador Firebird 2.5 / 3.0 ➔ Firebird 5.0</h2>
+            <p>Converta bases legadas <code>.FDB</code>, <code>.GDB</code> ou backups <code>.FBK</code> do Firebird 2.5 ou 3.0 para o moderno <strong>Firebird 5.0 (ODS 13.1)</strong> com apenas 1 clique.</p>
+        </section>
+
+        <!-- 14. Motores e Portas -->
+        <section class="section-block" id="multi-portas">
+            <h2 class="section-heading"><i class="fa-solid fa-server"></i> 14. Configuração de Motores e Portas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Versão Firebird</th>
+                        <th>Porta de Serviço</th>
+                        <th>ODS Suportada</th>
+                        <th>Localização dos Binários</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Firebird 2.5.9</strong></td><td><code>3051</code></td><td>ODS 11.2</td><td><code>engines/fb25/bin/</code></td></tr>
+                    <tr><td><strong>Firebird 3.0.14</strong></td><td><code>3052</code></td><td>ODS 12.0</td><td><code>engines/fb30/</code></td></tr>
+                    <tr><td><strong>Firebird 5.0.4</strong></td><td><code>3050</code> (Padrão)</td><td>ODS 13.1</td><td><code>C:\Program Files (x86)\Firebird\Firebird_5_0\</code></td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 15. FAQ -->
+        <section class="section-block" id="faq">
+            <h2 class="section-heading"><i class="fa-solid fa-circle-question"></i> 15. Dúvidas Frequentes (FAQ)</h2>
+            <h3 class="sub-heading">P: Preciso do BDE instalado?</h3>
+            <p><strong>R:</strong> Não! O motor lê diretamente a estrutura binária dos arquivos <code>.DB</code>, <code>.PX</code> e <code>.MB</code>.</p>
+
+            <h3 class="sub-heading">P: Como abrir o banco gerado?</h3>
+            <p><strong>R:</strong> Abra diretamente no IBExpert, DBeaver, FlameRobin ou conecte em sua linguagem de programação favorita.</p>
+        </section>
+
+    </div>
+</main>
+
+<script>
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('.section-block');
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (scrollY >= sectionTop - 120) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
